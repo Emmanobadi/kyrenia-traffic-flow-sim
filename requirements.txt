@@ -1,0 +1,14 @@
+# Core simulation
+pandas
+numpy
+
+# Map & visualization
+folium
+plotly
+matplotlib
+
+# Dashboard
+streamlit
+
+# PDF generation
+fpdf2
