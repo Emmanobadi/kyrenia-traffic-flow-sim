@@ -1,5 +1,6 @@
 """Display Kyrenia city center map from OpenStreetMap."""
 
+import os
 import folium
 
 # Kyrenia city center coordinates
@@ -62,9 +63,9 @@ for loc in locations:
 kyrenia_map.fit_bounds(BOUNDS)
 
 # Save map
-output_path = r"c:\Users\ahmed\kyrenia-traffic-flow-sim\network\kyrenia_map.html"
-kyrenia_map.save(output_path)
-print(f"Map saved to: {output_path}")
-print(f"\nOpen in browser: {output_path}")
+pythonoutput_path = os.path.join(os.path.dirname(__file__), 'kyrenia_map.html')
+kyrenia_map.save(pythonoutput_path)
+print(f"Map saved to: {pythonoutput_path}")
+print(f"\nOpen in browser: {pythonoutput_path}")
 print(f"\nBounding Box: {BOUNDS}")
 print(f"Center: {KYRENIA_CENTER}")
