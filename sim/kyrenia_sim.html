@@ -134,20 +134,71 @@ function fillBlock(bx,by,bw,bh,rng){
       }
     }
   }
-}
-
-function drawBuildings(){
+}function drawBuildings(){
   const g=geo();
   const {ixL,ixR,ixT,ixB,lw}=g;
-  const sw=lw*0.55;
-  const quads=[
-    {x:0,y:0,w:ixL-sw*1.5,h:ixT-sw*1.5},
-    {x:ixR+sw*1.5,y:0,w:W-ixR-sw*1.5,h:ixT-sw*1.5},
-    {x:0,y:ixB+sw*1.5,w:ixL-sw*1.5,h:H-ixB-sw*1.5},
-    {x:ixR+sw*1.5,y:ixB+sw*1.5,w:W-ixR-sw*1.5,h:H-ixB-sw*1.5},
-  ];
+  const sw=lw*0.8;
   const rng=mkRng(42);
-  for(const q of quads){if(q.w<20||q.h<20)continue;fillBlock(q.x,q.y,q.w,q.h,rng);}
+  const quads=[
+    {x:0,y:0,w:ixL-sw,h:ixT-sw},
+    {x:ixR+sw,y:0,w:W-ixR-sw,h:ixT-sw},
+    {x:0,y:ixB+sw,w:ixL-sw,h:H-ixB-sw},
+    {x:ixR+sw,y:ixB+sw,w:W-ixR-sw,h:H-ixB-sw},
+  ];
+  for(const q of quads){
+    if(q.w<20||q.h<20)continue;
+    ctx.fillStyle='#b8a882';
+    ctx.fillRect(q.x,q.y,q.w,q.h);
+    const cols=Math.max(1,Math.floor(q.w/90));
+    const rows=Math.max(1,Math.floor(q.h/80));
+    const cw=q.w/cols, ch=q.h/rows;
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const pad=10+rng()*16;
+        const bx=q.x+c*cw+pad;
+        const by=q.y+r*ch+pad;
+        const bw=cw-pad*2-rng()*14;
+        const bh=ch-pad*2-rng()*14;
+        if(bw<12||bh<12)continue;
+        const roll=rng();
+        if(roll>0.72){
+          // building
+          const col=roll>0.88?'#ede4ce':roll>0.75?TERRA[Math.floor(rng()*TERRA.length)]:STONE[Math.floor(rng()*STONE.length)];
+          ctx.fillStyle='rgba(0,0,0,0.15)';
+          ctx.fillRect(bx+3,by+3,bw,bh);
+          ctx.fillStyle=col;
+          ctx.fillRect(bx,by,bw,bh);
+        } else if(roll>0.44){
+          // green space
+          ctx.fillStyle='#5a8a3c';
+          ctx.fillRect(bx,by,bw,bh);
+          ctx.fillStyle='#4a7a2c';
+          ctx.fillRect(bx,by,bw,bh*0.4);
+          // scatter tree blobs
+          const tCount=Math.floor(2+rng()*3);
+          for(let t=0;t<tCount;t++){
+            const tx=bx+rng()*bw, ty=by+rng()*bh;
+            ctx.fillStyle='#3a6a20';
+            ctx.beginPath();ctx.arc(tx,ty,3+rng()*5,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='#4a8a28';
+            ctx.beginPath();ctx.arc(tx-1,ty-1,2+rng()*4,0,Math.PI*2);ctx.fill();
+          }
+        } else {
+          // parking lot
+          ctx.fillStyle='#8a8a80';
+          ctx.fillRect(bx,by,bw,bh);
+          ctx.strokeStyle='rgba(255,255,255,0.25)';
+          ctx.lineWidth=0.8;
+          const spaces=Math.max(2,Math.floor(bw/10));
+          for(let s=1;s<spaces;s++){
+            const lx2=bx+s*(bw/spaces);
+            ctx.beginPath();ctx.moveTo(lx2,by);ctx.lineTo(lx2,by+bh);ctx.stroke();
+          }
+          ctx.beginPath();ctx.moveTo(bx,by+bh/2);ctx.lineTo(bx+bw,by+bh/2);ctx.stroke();
+        }
+      }
+    }
+  }
 }
 function drawRoads(){
   const {nsW,ewW,ixL,ixR,ixT,ixB,lw}=geo();
