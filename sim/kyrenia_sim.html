@@ -239,11 +239,152 @@ function drawFurniture(){
   }
 }
 
-function draw(){
-  drawTerrain();drawBuildings();drawRoads();drawMarkings();drawFurniture();
-  requestAnimationFrame(draw);
+let vehicles=[], vid=0, simT=0, passed=0, tpAccum=0;
+let spawnAcc={};
+let playing=true;
+let mainInflow=700, secInflow=350, freeSpd=50, tlapse=3, truckPct=15, politeness=55;
+let scenario='priority', closedLanes=new Set();
+let TL_TIMES=[28,4,20,4], tlPhase=0, tlClock=0;
+
+const CAR_COLORS=[
+  '#c83838','#3870cc','#d09028','#38aa38','#8848cc',
+  '#28a8a8','#e07028','#a0a820','#c84080','#787870',
+  '#f0f0e8','#203878','#702020','#286830','#704880',
+];
+
+function makeLanes(g){
+  const {lx,ly}=g;
+  const lanes=[];
+  if(!closedLanes.has('n1')) lanes.push({id:'SB0',x:lx[0],y0:-30,y1:H+30,axis:'NS',dir:1,inflow:mainInflow*0.5,key:'n1'});
+  if(!closedLanes.has('n2')) lanes.push({id:'SB1',x:lx[1],y0:-30,y1:H+30,axis:'NS',dir:1,inflow:mainInflow*0.5,key:'n2'});
+  if(!closedLanes.has('s1')) lanes.push({id:'NB0',x:lx[2],y0:H+30,y1:-30,axis:'NS',dir:-1,inflow:mainInflow*0.5,key:'s1'});
+  if(!closedLanes.has('s2')) lanes.push({id:'NB1',x:lx[3],y0:H+30,y1:-30,axis:'NS',dir:-1,inflow:mainInflow*0.5,key:'s2'});
+  if(!closedLanes.has('w'))  lanes.push({id:'EB',y:ly[1],x0:-30,x1:W+30,axis:'EW',dir:1,inflow:secInflow,key:'w'});
+  if(!closedLanes.has('e'))  lanes.push({id:'WB',y:ly[0],x0:W+30,x1:-30,axis:'EW',dir:-1,inflow:secInflow,key:'e'});
+  return lanes;
 }
-requestAnimationFrame(draw);
+
+function spawnVehicle(lane,g){
+  const {lw}=g;
+  const isTruck=Math.random()*100<truckPct;
+  const len=isTruck?lw*2.4:lw*1.25, wid=isTruck?lw*0.82:lw*0.6;
+  const isNS=lane.axis==='NS';
+  const px=isNS?lane.x:lane.x0, py=isNS?lane.y0:lane.y;
+  const angle=isNS?(lane.dir>0?Math.PI/2:-Math.PI/2):(lane.dir>0?0:Math.PI);
+  const clear=vehicles.every(v=>!v.active||v.laneId!==lane.id||Math.hypot(v.px-px,v.py-py)>len*3);
+  if(!clear)return;
+  const baseSpd=(freeSpd/3.6)*(isTruck?0.78:1)*(0.9+Math.random()*0.1);
+  const col=isTruck?['#3c3428','#484030','#4c4838','#404848'][Math.floor(Math.random()*4)]:CAR_COLORS[Math.floor(Math.random()*CAR_COLORS.length)];
+  vehicles.push({id:vid++,px,py,laneId:lane.id,axis:lane.axis,dir:lane.dir,fixX:isNS?lane.x:null,fixY:isNS?null:lane.y,color:col,len,wid,angle,spd:baseSpd,freeSpd:baseSpd,active:true,isTruck,stopTime:0});
+}
+
+function updateVehicles(dt,g){
+  const {ixL,ixR,ixT,ixB,lw}=g;
+  const lanes=makeLanes(g);
+  for(const lane of lanes){
+    if(!spawnAcc[lane.id])spawnAcc[lane.id]=0;
+    spawnAcc[lane.id]+=dt;
+    const interval=3600/lane.inflow;
+    while(spawnAcc[lane.id]>=interval){spawnAcc[lane.id]-=interval;spawnVehicle(lane,g);}
+  }
+  const s0_car=lw*0.8,s0_trk=lw*1.1,T=0.9,a0=2.2,b0=3.5;
+  const impoliteness=1-(politeness/100);
+  for(const v of vehicles){
+    if(!v.active)continue;
+    let mustStop=false;
+    if(scenario==='signals'){
+      const nsRed=tlPhase===2||tlPhase===3,ewRed=tlPhase===0||tlPhase===1;
+      const ap=lw*2.8,sl=lw*0.45;
+      if(v.axis==='NS'&&nsRed){
+        if(v.dir>0&&v.py<ixT-sl&&v.py>ixT-sl-ap)mustStop=true;
+        if(v.dir<0&&v.py>ixB+sl&&v.py<ixB+sl+ap)mustStop=true;
+      }
+      if(v.axis==='EW'&&ewRed){
+        if(v.dir>0&&v.px<ixL-sl&&v.px>ixL-sl-ap)mustStop=true;
+        if(v.dir<0&&v.px>ixR+sl&&v.px<ixR+sl+ap)mustStop=true;
+      }
+    }
+    if(scenario==='allstop'){
+      const ap=lw*2,sl=lw*0.45;
+      if(v.axis==='NS'){
+        if(v.dir>0&&v.py<ixT-sl&&v.py>ixT-sl-ap)mustStop=true;
+        if(v.dir<0&&v.py>ixB+sl&&v.py<ixB+sl+ap)mustStop=true;
+      } else {
+        if(v.dir>0&&v.px<ixL-sl&&v.px>ixL-sl-ap)mustStop=true;
+        if(v.dir<0&&v.px>ixR+sl&&v.px<ixR+sl+ap)mustStop=true;
+      }
+    }
+    let gap=9999;
+    for(const u of vehicles){
+      if(u===v||!u.active||u.laneId!==v.laneId)continue;
+      const d=v.axis==='NS'?v.dir*(u.py-v.py):v.dir*(u.px-v.px);
+      if(d>0&&d<gap)gap=d;
+    }
+    gap-=v.len;
+    let acc;
+    const s0=v.isTruck?s0_trk:s0_car;
+    if(mustStop){
+      acc=-b0*2.5;
+    } else {
+      const deltaV=v.spd-(gap<900?v.spd*0.9:0);
+      const sStar=s0+Math.max(0,v.spd*T+v.spd*deltaV/(2*Math.sqrt(a0*b0)));
+      const gapAdj=Math.max(0.1,gap);
+      acc=a0*(1-Math.pow(v.spd/Math.max(0.1,v.freeSpd),4)-(gap<9000?Math.pow(sStar/gapAdj,2):0));
+      acc*=(1+impoliteness*0.4);
+    }
+    v.spd=Math.max(0,v.spd+acc*dt);
+    if(v.axis==='NS'){v.py+=v.dir*v.spd*dt;if(v.fixX!==null)v.px=v.fixX;}
+    else{v.px+=v.dir*v.spd*dt;if(v.fixY!==null)v.py=v.fixY;}
+    if(v.spd<0.3)v.stopTime+=dt;else v.stopTime=0;
+    if(v.px<-80||v.px>W+80||v.py<-80||v.py>H+80){v.active=false;passed++;}
+  }
+  if(vehicles.length>400)vehicles=vehicles.filter(v=>v.active);
+}
+
+function adjustL(hex,amt){
+  const n=parseInt(hex.replace('#',''),16);
+  return `rgb(${Math.min(255,(n>>16)+amt)},${Math.min(255,((n>>8)&0xff)+amt)},${Math.min(255,(n&0xff)+amt)})`;
+}
+
+function drawVehicles(g){
+  for(const v of vehicles){
+    if(!v.active)continue;
+    ctx.save();ctx.translate(v.px,v.py);ctx.rotate(v.angle);
+    if(v.isTruck){
+      ctx.fillStyle='rgba(0,0,0,0.32)';ctx.fillRect(-v.len/2+3,-v.wid/2+3,v.len,v.wid);
+      ctx.fillStyle=v.color;ctx.fillRect(-v.len/2,-v.wid/2,v.len*0.72,v.wid);
+      ctx.fillStyle=adjustL(v.color,20);ctx.fillRect(v.len*0.22,-v.wid/2,v.len*0.28,v.wid);
+      ctx.fillStyle='rgba(140,190,220,0.75)';ctx.fillRect(v.len*0.26,-v.wid/2+1.5,v.len*0.16,v.wid-3);
+      ctx.fillStyle='#fff8d0';ctx.fillRect(v.len/2-2,-v.wid/2+2,2,3);ctx.fillRect(v.len/2-2,v.wid/2-5,2,3);
+    } else {
+      ctx.fillStyle='rgba(0,0,0,0.28)';ctx.fillRect(-v.len/2+2,-v.wid/2+2,v.len,v.wid);
+      ctx.fillStyle=v.color;ctx.fillRect(-v.len/2,-v.wid/2,v.len,v.wid);
+      ctx.fillStyle='rgba(155,205,235,0.78)';ctx.fillRect(-v.len/2+v.len*0.13,-v.wid/2+1,v.len*0.27,v.wid-2);
+      ctx.fillStyle='rgba(135,185,215,0.6)';ctx.fillRect(v.len/2-v.len*0.25,-v.wid/2+1,v.len*0.2,v.wid-2);
+      ctx.fillStyle='#fffcd0';ctx.fillRect(v.len/2-2,-v.wid/2+1,2,2.5);ctx.fillRect(v.len/2-2,v.wid/2-3.5,2,2.5);
+      ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(-v.len/2+v.len*0.25,-v.wid/2+1.5,v.len*0.45,v.wid-3);
+    }
+    ctx.restore();
+  }
+}
+
+let last=null;
+function loop(ts){
+  if(!last)last=ts;
+  const rawDt=Math.min((ts-last)/1000,0.05);last=ts;
+  if(playing){
+    const dt=rawDt*tlapse;simT+=dt;
+    if(scenario==='signals'){tlClock+=dt;if(tlClock>=TL_TIMES[tlPhase]){tlClock-=TL_TIMES[tlPhase];tlPhase=(tlPhase+1)%4;}}
+    updateVehicles(dt,geo());
+    document.getElementById('timer').textContent='T = '+Math.floor(simT)+' s';
+  }
+  const g=geo();
+  drawTerrain();drawBuildings();drawRoads();drawMarkings();drawFurniture();
+  drawVehicles(g);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
 </script>
 </body>
 </html>
