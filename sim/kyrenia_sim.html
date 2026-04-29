@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kyrenia — Traffic Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#111210;--panel:#161714;--border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.13);--text:#d8d4cc;--dim:#6a665e;
+  --accent:#c8944a;--green:#5caa5c;--red:#c05040;
+  --mono:'JetBrains Mono',monospace;--sans:'Sora',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:var(--bg);font-family:var(--sans);color:var(--text);overflow:hidden}
+#app{display:flex;height:100vh;width:100vw}
+#sim{flex:1;min-width:0;position:relative;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+#corner-label{
+  position:absolute;bottom:10px;left:10px;
+  font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.22);
+  pointer-events:none;letter-spacing:.05em;
+}
+#div{width:1px;background:var(--border);flex-shrink:0}
+#ctrl{
+  width:268px;flex-shrink:0;background:var(--panel);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#ctrl-scroll{
+  flex:1;overflow-y:auto;padding:16px 14px 20px;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent;
+}
+.ctrl-head{
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  color:var(--accent);letter-spacing:.12em;text-transform:uppercase;
+  padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--border);
+}
+#ctrl-foot{
+  padding:10px 14px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+#timer{font-family:var(--mono);font-size:10px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sim">
+    <canvas id="c"></canvas>
+    <div id="corner-label">Bellapais Ave × Dr. Fazıl Küçük Cad · Kyrenia (Girne) · TRNC</div>
+  </div>
+  <div id="div"></div>
+  <div id="ctrl">
+    <div id="ctrl-scroll">
+      <div class="ctrl-head">Kyrenia Traffic</div>
+    </div>
+    <div id="ctrl-foot">
+      <div id="timer">T = 0 s</div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0;
+
+function resize(){
+  const el = document.getElementById('sim');
+  W = canvas.width  = el.clientWidth;
+  H = canvas.height = el.clientHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function geo(){
+  const cx = W*0.47, cy = H*0.50;
+  const unit = Math.min(W,H)*0.032;
+  const nsW = unit*4.4, ewW = unit*2.2, lw = nsW/4;
+  const ixL=cx-nsW/2, ixR=cx+nsW/2, ixT=cy-ewW/2, ixB=cy+ewW/2;
+  const lx=[cx-lw*1.5, cx-lw*0.5, cx+lw*0.5, cx+lw*1.5];
+  const ly=[cy-ewW*0.25, cy+ewW*0.25];
+  return {cx,cy,unit,nsW,ewW,lw,ixL,ixR,ixT,ixB,lx,ly};
+}
+
+function mkRng(seed){
+  let s=seed>>>0;
+  return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967295;};
+}
+
+function drawTerrain(){
+  ctx.fillStyle='#8c7a5c';
+  ctx.fillRect(0,0,W,H);
+  const rng=mkRng(13);
+  for(let i=0;i<80;i++){
+    const x=rng()*W,y=rng()*H,r=30+rng()*80;
+    ctx.fillStyle=rng()>0.5?'rgba(0,0,0,0.06)':'rgba(255,255,255,0.025)';
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  }
+  const rng2=mkRng(77);const g=geo();
+  for(let i=0;i<18;i++){
+    const gx=rng2()*W,gy=rng2()*H;
+    const onRoad=(gx>g.ixL-g.nsW&&gx<g.ixR+g.nsW)||(gy>g.ixT-g.ewW&&gy<g.ixB+g.ewW);
+    if(onRoad)continue;
+    ctx.fillStyle=`rgba(60,90,40,${0.25+rng2()*0.2})`;
+    ctx.fillRect(gx,gy,20+rng2()*50,15+rng2()*40);
+  }
+}
+const STONE=['#d4c49a','#c9b485','#cbb878','#dbc090','#c8ae72'];
+const TERRA=['#c06848','#b85e40','#d07858'];
+
+function fillBlock(bx,by,bw,bh,rng){
+  const cols=Math.max(1,Math.floor(bw/48));
+  const rows=Math.max(1,Math.floor(bh/38));
+  const cw=bw/cols,ch=bh/rows;
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const x=bx+c*cw,y=by+r*ch;
+      const pad=4+rng()*4;
+      const bx2=x+pad,by2=y+pad,bw2=cw-pad*2,bh2=ch-pad*2;
+      if(bw2<10||bh2<10)continue;
+      const roll=rng();
+      const isWhite=roll>0.85,isTerra=roll>0.65&&!isWhite;
+      const base=isWhite?'#ede4ce':isTerra?TERRA[Math.floor(rng()*TERRA.length)]:STONE[Math.floor(rng()*STONE.length)];
+      // shadow
+      ctx.fillStyle='rgba(0,0,0,0.18)';
+      ctx.fillRect(bx2+4,by2+4,bw2,bh2);
+      // body
+      ctx.fillStyle=base;
+      ctx.fillRect(bx2,by2,bw2,bh2);
+      // roof edge
+      if(isTerra){
+        ctx.fillStyle='rgba(0,0,0,0.12)';
+        ctx.fillRect(bx2,by2,bw2,Math.max(2,bh2*0.15));
+      }
+    }
+  }
+}
+
+function drawBuildings(){
+  const g=geo();
+  const {ixL,ixR,ixT,ixB,lw}=g;
+  const sw=lw*0.55;
+  const quads=[
+    {x:0,y:0,w:ixL-sw*1.5,h:ixT-sw*1.5},
+    {x:ixR+sw*1.5,y:0,w:W-ixR-sw*1.5,h:ixT-sw*1.5},
+    {x:0,y:ixB+sw*1.5,w:ixL-sw*1.5,h:H-ixB-sw*1.5},
+    {x:ixR+sw*1.5,y:ixB+sw*1.5,w:W-ixR-sw*1.5,h:H-ixB-sw*1.5},
+  ];
+  const rng=mkRng(42);
+  for(const q of quads){if(q.w<20||q.h<20)continue;fillBlock(q.x,q.y,q.w,q.h,rng);}
+}
+function drawRoads(){
+  const {nsW,ewW,ixL,ixR,ixT,ixB,lw}=geo();
+  const sw=lw*0.52;
+  ctx.fillStyle='#c4b494';
+  ctx.fillRect(ixL-sw,0,sw,H);ctx.fillRect(ixR,0,sw,H);
+  ctx.fillRect(0,ixT-sw,ixL,sw);ctx.fillRect(ixR,ixT-sw,W-ixR,sw);
+  ctx.fillRect(0,ixB,ixL,sw);ctx.fillRect(ixR,ixB,W-ixR,sw);
+  ctx.fillStyle='#5a5a52';
+  ctx.fillRect(ixL,0,nsW,H);ctx.fillRect(0,ixT,W,ewW);
+  ctx.fillStyle='#606058';ctx.fillRect(ixL,ixT,nsW,ewW);
+  ctx.strokeStyle='#3e3e36';ctx.lineWidth=1;ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(ixL,0);ctx.lineTo(ixL,ixT);ctx.moveTo(ixL,ixB);ctx.lineTo(ixL,H);
+  ctx.moveTo(ixR,0);ctx.lineTo(ixR,ixT);ctx.moveTo(ixR,ixB);ctx.lineTo(ixR,H);
+  ctx.moveTo(0,ixT);ctx.lineTo(ixL,ixT);ctx.moveTo(ixR,ixT);ctx.lineTo(W,ixT);
+  ctx.moveTo(0,ixB);ctx.lineTo(ixL,ixB);ctx.moveTo(ixR,ixB);ctx.lineTo(W,ixB);
+  ctx.stroke();
+}
+
+function drawMarkings(){
+  const {cx,cy,nsW,ewW,ixL,ixR,ixT,ixB,lw,lx,ly}=geo();
+  ctx.strokeStyle='#d4b030';ctx.lineWidth=1.2;ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(cx-1.2,0);ctx.lineTo(cx-1.2,ixT);ctx.moveTo(cx-1.2,ixB);ctx.lineTo(cx-1.2,H);
+  ctx.moveTo(cx+1.2,0);ctx.lineTo(cx+1.2,ixT);ctx.moveTo(cx+1.2,ixB);ctx.lineTo(cx+1.2,H);
+  ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,0.48)';ctx.lineWidth=1;ctx.setLineDash([lw*0.5,lw*0.5]);
+  for(const x of[cx-lw*1.5,cx+lw*1.5]){
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ixT);ctx.moveTo(x,ixB);ctx.lineTo(x,H);ctx.stroke();
+  }
+  ctx.strokeStyle='#d4b030';ctx.lineWidth=1.2;ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(0,cy-1.2);ctx.lineTo(ixL,cy-1.2);ctx.moveTo(ixR,cy-1.2);ctx.lineTo(W,cy-1.2);
+  ctx.moveTo(0,cy+1.2);ctx.lineTo(ixL,cy+1.2);ctx.moveTo(ixR,cy+1.2);ctx.lineTo(W,cy+1.2);
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=2;
+  const sl=lw*0.45;
+  ctx.beginPath();
+  ctx.moveTo(ixL,ixT-sl);ctx.lineTo(ixR,ixT-sl);
+  ctx.moveTo(ixL,ixB+sl);ctx.lineTo(ixR,ixB+sl);
+  ctx.moveTo(ixL-sl,ixT);ctx.lineTo(ixL-sl,ixB);
+  ctx.moveTo(ixR+sl,ixT);ctx.lineTo(ixR+sl,ixB);
+  ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.52)';
+  const zs=5,zg=4.5;
+  const zpN=Math.floor(nsW/(zs+zg));
+  for(let i=0;i<zpN;i++){
+    ctx.fillRect(ixL+i*(zs+zg),ixT-sl-lw*0.6,zs,lw*0.45);
+    ctx.fillRect(ixL+i*(zs+zg),ixB+sl+lw*0.15,zs,lw*0.45);
+  }
+  const zpE=Math.floor(ewW/(zs+zg));
+  for(let i=0;i<zpE;i++){
+    ctx.fillRect(ixL-sl-lw*0.6,ixT+i*(zs+zg),lw*0.45,zs);
+    ctx.fillRect(ixR+sl+lw*0.15,ixT+i*(zs+zg),lw*0.45,zs);
+  }
+  ctx.fillStyle='rgba(255,255,255,0.2)';
+  ctx.font=`${lw*0.8}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('↓',lx[0],H*0.25);ctx.fillText('↓',lx[1],H*0.25);
+  ctx.fillText('↑',lx[2],H*0.75);ctx.fillText('↑',lx[3],H*0.75);
+  ctx.fillText('→',W*0.2,ly[1]);ctx.fillText('←',W*0.8,ly[0]);
+}
+
+function palm(x,y,r){
+  ctx.fillStyle='#5a4030';ctx.beginPath();ctx.arc(x,y,r*0.22,0,Math.PI*2);ctx.fill();
+  for(let i=0;i<6;i++){
+    const a=(i/6)*Math.PI*2,ex=x+Math.cos(a)*r*1.2,ey=y+Math.sin(a)*r*1.2;
+    ctx.strokeStyle='rgba(38,80,28,0.85)';ctx.lineWidth=r*0.55;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.stroke();
+  }
+  ctx.fillStyle='#2e5820';ctx.beginPath();ctx.arc(x,y,r*0.55,0,Math.PI*2);ctx.fill();
+}
+
+function orangeTree(x,y,r){
+  ctx.fillStyle='#2d5018';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(50,80,30,0.55)';ctx.beginPath();ctx.arc(x-r*0.12,y-r*0.15,r*0.7,0,Math.PI*2);ctx.fill();
+}
+
+function drawFurniture(){
+  const {ixL,ixR,ixT,ixB,lw}=geo();
+  const sw=lw*0.52,spacing=lw*3.5,treeR=sw*0.44;
+  for(let y=ixT-spacing;y>0;y-=spacing){palm(ixL-sw*0.5,y,treeR);palm(ixR+sw*0.5,y,treeR);}
+  for(let y=ixB+spacing;y<H;y+=spacing){palm(ixL-sw*0.5,y,treeR);palm(ixR+sw*0.5,y,treeR);}
+  for(let x=ixL-spacing;x>0;x-=spacing){orangeTree(x,ixT-sw*0.5,treeR*0.82);orangeTree(x,ixB+sw*0.5,treeR*0.82);}
+  for(let x=ixR+spacing;x<W;x+=spacing){orangeTree(x,ixT-sw*0.5,treeR*0.82);orangeTree(x,ixB+sw*0.5,treeR*0.82);}
+  ctx.fillStyle='#9e8e70';
+  for(const [x,y] of[[ixL,ixT],[ixR,ixT],[ixL,ixB],[ixR,ixB]]){
+    ctx.beginPath();ctx.arc(x,y,lw*0.17,0,Math.PI*2);ctx.fill();
+  }
+}
+
+function draw(){
+  drawTerrain();drawBuildings();drawRoads();drawMarkings();drawFurniture();
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
