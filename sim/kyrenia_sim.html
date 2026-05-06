@@ -657,6 +657,53 @@ function drawVehicles(g){
   }
 }
 
+function drawIdOverlays(g){
+  if(!showIds&&!showVids)return;
+  const {ixL,ixR,ixT,ixB,lw}=g;
+  if(showIds){
+    const lanes=makeLanes(g);
+    ctx.save();
+    ctx.font=`${Math.max(9,lw*0.5)}px ${getComputedStyle(document.documentElement).getPropertyValue('--mono')}`;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    for(const lane of lanes){
+      let x=0,y=0;
+      if(lane.axis==='NS'){
+        x=lane.x;
+        y=lane.dir>0?ixT-lw*1.7:ixB+lw*1.7;
+      } else {
+        y=lane.y;
+        x=lane.dir>0?ixL-lw*1.9:ixR+lw*1.9;
+      }
+      ctx.fillStyle='rgba(20,20,18,0.72)';
+      ctx.fillRect(x-lw*0.9,y-lw*0.48,lw*1.8,lw*0.95);
+      ctx.fillStyle='rgba(255,238,198,0.94)';
+      ctx.fillText(lane.id,x,y);
+    }
+    if(junctionMode==='roundabout'){
+      ctx.fillStyle='rgba(20,20,18,0.72)';
+      ctx.fillRect((ixL+ixR)/2-lw*1.0,(ixT+ixB)/2-lw*0.5,lw*2.0,lw*1.0);
+      ctx.fillStyle='rgba(255,238,198,0.94)';
+      ctx.fillText('RB',(ixL+ixR)/2,(ixT+ixB)/2);
+    }
+    ctx.restore();
+  }
+  if(showVids){
+    ctx.save();
+    ctx.font=`${Math.max(9,lw*0.48)}px ${getComputedStyle(document.documentElement).getPropertyValue('--mono')}`;
+    ctx.textAlign='center';
+    ctx.textBaseline='bottom';
+    for(const v of vehicles){
+      if(!v.active)continue;
+      ctx.fillStyle='rgba(10,10,10,0.7)';
+      ctx.fillRect(v.px-lw*0.42,v.py-v.len*0.35-lw*0.78,lw*0.84,lw*0.62);
+      ctx.fillStyle='rgba(240,240,230,0.95)';
+      ctx.fillText(String(v.id),v.px,v.py-v.len*0.35-lw*0.18);
+    }
+    ctx.restore();
+  }
+}
+
 let last=null;
 function loop(ts){
   if(!last)last=ts;
@@ -671,6 +718,7 @@ function loop(ts){
   drawTerrain();drawBuildings();drawRoads();drawMarkings();drawFurniture();drawPlaceLabels();
   drawSignalHeads(g);
   drawVehicles(g);
+  drawIdOverlays(g);
   requestAnimationFrame(loop);
 }
 
