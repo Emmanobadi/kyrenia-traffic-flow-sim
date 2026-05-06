@@ -319,6 +319,40 @@ function drawFurniture(){
   }
 }
 
+function drawPlaceLabels(){
+  const {cx,cy,lw}=geo();
+  const labels=[
+    {icon:'fork',name:'Avanti',x:cx-lw*7.9,y:cy+lw*0.55},
+    {icon:'fork',name:'Pia Bella',x:cx-lw*10.9,y:cy-lw*1.35},
+    {icon:'fork',name:'Maripenne',x:cx+lw*7.6,y:cy-lw*9.15},
+    {icon:'fork',name:'I beti italian',x:cx+lw*8.95,y:cy-lw*4.95},
+    {icon:'fork',name:'Gocmen',x:cx+lw*5.55,y:cy+lw*3.2},
+    {icon:'coffee',name:'Tango To Buddha',x:cx+lw*11.35,y:cy-lw*1.25},
+    {icon:'uni',name:'ARUCAD',x:cx-lw*5.65,y:cy+lw*3.85},
+  ];
+
+  const rootStyles=getComputedStyle(document.documentElement);
+  const sans=rootStyles.getPropertyValue('--sans');
+  const iconMap={fork:'🍴',coffee:'☕',uni:'🏫'};
+  const fontSize=Math.max(8,Math.floor(lw*0.44));
+  ctx.textBaseline='middle';
+  for(const l of labels){
+    const icon=iconMap[l.icon]||'•';
+    const text=`${icon} ${l.name}`;
+    ctx.font=`${fontSize}px ${sans}`;
+    ctx.textAlign='left';
+    const m=ctx.measureText(text);
+    const padX=4,padY=2.6;
+    ctx.fillStyle='rgba(238,230,211,0.72)';
+    ctx.fillRect(l.x-padX,l.y-fontSize*0.64-padY,m.width+padX*2,fontSize+padY*2);
+    ctx.strokeStyle='rgba(255,252,244,0.84)';
+    ctx.lineWidth=2.2;
+    ctx.fillStyle='rgba(82,73,58,0.94)';
+    ctx.strokeText(text,l.x,l.y);
+    ctx.fillText(text,l.x,l.y);
+  }
+}
+
 let vehicles=[], vid=0, simT=0, passed=0, tpAccum=0;
 let spawnAcc={};
 let playing=true;
@@ -459,7 +493,7 @@ function loop(ts){
     document.getElementById('timer').textContent='T = '+Math.floor(simT)+' s';
   }
   const g=geo();
-  drawTerrain();drawBuildings();drawRoads();drawMarkings();drawFurniture();
+  drawTerrain();drawBuildings();drawRoads();drawMarkings();drawFurniture();drawPlaceLabels();
   drawVehicles(g);
   requestAnimationFrame(loop);
 }
