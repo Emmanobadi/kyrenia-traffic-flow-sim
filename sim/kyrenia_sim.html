@@ -52,6 +52,21 @@ canvas{display:block;width:100%;height:100%}
 .sr input[type=range]{width:80px;flex-shrink:0;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;background:rgba(255,255,255,.1);cursor:pointer;}
 .sr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--panel);cursor:pointer;}
 .sv{font-family:var(--mono);font-size:10px;color:var(--accent);min-width:48px;text-align:right;}
+.pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.pill{flex:1;min-width:60px;background:transparent;border:1px solid var(--border2);color:var(--dim);font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;padding:6px 4px;border-radius:2px;cursor:pointer;text-align:center;transition:all .15s;text-transform:uppercase;}
+.pill:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
+.pill.on{background:rgba(200,148,74,.12);border-color:var(--accent);color:var(--accent)}
+#tl-display{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:7px 9px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:3px;}
+.tl-circle{width:10px;height:10px;border-radius:50%;background:#333;flex-shrink:0;transition:background .3s;}
+#tl-phase-text{font-family:var(--mono);font-size:10px;color:var(--dim);flex:1}
+#tl-timer-text{font-family:var(--mono);font-size:10px;color:var(--accent)}
+.tl-sliders{margin-top:6px}
+.tl-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tl-row span{font-size:11px;color:#a09890;flex:1}
+.tl-row input[type=range]{width:60px;flex-shrink:0;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;background:rgba(255,255,255,.1);cursor:pointer}
+.tl-row input::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;border:2px solid var(--panel);cursor:pointer}
+.tl-sv{font-family:var(--mono);font-size:10px;min-width:26px;text-align:right}
 </style>
 </head>
 <body>
@@ -81,6 +96,23 @@ canvas{display:block;width:100%;height:100%}
         <div class="sec-lbl">Driver Behavior</div>
         <div class="sr"><span>Max speed</span><input type="range" min="20" max="90" value="50" step="5" oninput="freeSpd=+this.value;sv('sv-sp',this.value+' km/h')"><div class="sv" id="sv-sp">50 km/h</div></div>
         <div class="sr"><span>Politeness</span><input type="range" min="0" max="100" value="55" step="5" oninput="politeness=+this.value;sv('sv-po',this.value+'%')"><div class="sv" id="sv-po">55%</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-lbl">Intersection Control</div>
+        <div class="pills" id="scenario-pills">
+          <button class="pill on" onclick="setScenario(this,'priority')">Priority</button>
+          <button class="pill" onclick="setScenario(this,'signals')">Signals</button>
+          <button class="pill" onclick="setScenario(this,'allstop')">All-stop</button>
+        </div>
+        <div id="tl-display" style="margin-top:9px">
+          <div class="tl-circle" id="tl-c"></div>
+          <div id="tl-phase-text">—</div>
+          <div id="tl-timer-text"></div>
+        </div>
+        <div class="tl-sliders">
+          <div class="tl-row"><div class="tl-dot" style="background:#5caa5c"></div><span>N-S green</span><input type="range" min="5" max="60" value="28" step="1" oninput="TL_TIMES[0]=+this.value;sv('sv-g1',this.value+'s')"><div class="tl-sv" id="sv-g1">28s</div></div>
+          <div class="tl-row"><div class="tl-dot" style="background:#c05040"></div><span>E-W green</span><input type="range" min="5" max="60" value="20" step="1" oninput="TL_TIMES[2]=+this.value;sv('sv-g2',this.value+'s')"><div class="tl-sv" id="sv-g2">20s</div></div>
+        </div>
       </div>
     </div>
     <div id="ctrl-foot">
@@ -505,6 +537,17 @@ function toggleVids(){showVids=!showVids;document.getElementById('ob-vid').class
 function resetSim(){vehicles=[];vid=0;simT=0;passed=0;tpAccum=0;tlPhase=0;tlClock=0;spawnAcc={};document.getElementById('timer').textContent='T = 0 s';}
 function sv(id,val){document.getElementById(id).textContent=val;}
 requestAnimationFrame(loop);
+function setScenario(btn,sc){
+  scenario=sc;
+  document.querySelectorAll('#scenario-pills .pill').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  tlPhase=0;tlClock=0;
+  if(sc!=='signals'){
+    document.getElementById('tl-phase-text').textContent='— off —';
+    document.getElementById('tl-c').style.background='#333';
+    document.getElementById('tl-timer-text').textContent='';
+  }
+}
 
 </script>
 </body>
