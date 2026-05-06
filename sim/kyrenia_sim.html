@@ -17,6 +17,10 @@ html,body{width:100%;height:100%;background:var(--bg);font-family:var(--sans);co
 #app{display:flex;height:100vh;width:100vw}
 #sim{flex:1;min-width:0;position:relative;overflow:hidden}
 canvas{display:block;width:100%;height:100%}
+#ov{position:absolute;top:10px;left:10px;display:flex;gap:5px;z-index:9}
+.ob{background:rgba(17,18,16,0.85);border:1px solid var(--border2);color:var(--dim);font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;padding:4px 10px;border-radius:2px;cursor:pointer;user-select:none;transition:color .15s,border-color .15s;}
+.ob:hover{color:var(--text);border-color:rgba(255,255,255,.28)}
+.ob.lit{color:var(--accent);border-color:var(--accent)}
 #corner-label{
   position:absolute;bottom:10px;left:10px;
   font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.22);
@@ -47,6 +51,12 @@ canvas{display:block;width:100%;height:100%}
 <div id="app">
   <div id="sim">
     <canvas id="c"></canvas>
+    <div id="ov">
+      <div class="ob" id="ob-play" onclick="togglePlay()">⏸ PAUSE</div>
+      <div class="ob" id="ob-ids" onclick="toggleIds()">ROAD IDs</div>
+      <div class="ob" id="ob-vid" onclick="toggleVids()">VEH IDs</div>
+      <div class="ob" id="ob-rst" onclick="resetSim()">↺ RESET</div>
+    </div>
     <div id="corner-label">Bellapais Ave × Dr. Fazıl Küçük Cad · Kyrenia (Girne) · TRNC</div>
   </div>
   <div id="div"></div>
@@ -434,6 +444,12 @@ function loop(ts){
   drawVehicles(g);
   requestAnimationFrame(loop);
 }
+
+let showIds=false, showVids=false;
+function togglePlay(){playing=!playing;document.getElementById('ob-play').textContent=playing?'⏸ PAUSE':'▶ PLAY';document.getElementById('ob-play').classList.toggle('lit',!playing);}
+function toggleIds(){showIds=!showIds;document.getElementById('ob-ids').classList.toggle('lit',showIds);}
+function toggleVids(){showVids=!showVids;document.getElementById('ob-vid').classList.toggle('lit',showVids);}
+function resetSim(){vehicles=[];vid=0;simT=0;passed=0;tpAccum=0;tlPhase=0;tlClock=0;spawnAcc={};document.getElementById('timer').textContent='T = 0 s';}
 requestAnimationFrame(loop);
 
 </script>
