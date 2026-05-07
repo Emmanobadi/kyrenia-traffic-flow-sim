@@ -92,8 +92,8 @@ canvas{display:block;width:100%;height:100%}
         </div>
         <div class="sec-lbl" style="margin-top:8px">Control Mode</div>
         <div class="pills" id="scenario-pills">
-          <button class="pill on" id="sc-priority" onclick="setScenario(this,'priority')">Priority</button>
-          <button class="pill" id="sc-signals" onclick="setScenario(this,'signals')">Signals</button>
+          <button class="pill" id="sc-priority" onclick="setScenario(this,'priority')">Priority</button>
+          <button class="pill on" id="sc-signals" onclick="setScenario(this,'signals')">Signals</button>
           <button class="pill" id="sc-allstop" onclick="setScenario(this,'allstop')">All-stop</button>
         </div>
         <div class="tl-sliders">
@@ -112,6 +112,14 @@ canvas{display:block;width:100%;height:100%}
         <div class="sec-lbl">Driver Behavior</div>
         <div class="sr"><span>Max speed</span><input type="range" min="20" max="90" value="50" step="5" oninput="freeSpd=+this.value;sv('sv-sp',this.value+' km/h')"><div class="sv" id="sv-sp">50 km/h</div></div>
         <div class="sr"><span>Politeness</span><input type="range" min="0" max="100" value="55" step="5" oninput="politeness=+this.value;sv('sv-po',this.value+'%')"><div class="sv" id="sv-po">55%</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-lbl">Lane Closures</div>
+        <div class="pills" id="closure-mode-pills">
+          <button class="pill on" data-cmode="none" onclick="setClosureMode(this,'none')">None</button>
+          <button class="pill" data-cmode="north" onclick="setClosureMode(this,'north')">Close north lane</button>
+          <button class="pill" data-cmode="south" onclick="setClosureMode(this,'south')">Close south lane</button>
+        </div>
       </div>
       <div class="sec">
         <div class="sec-lbl">Live Metrics</div>
@@ -442,7 +450,7 @@ let vehicles=[], vid=0, simT=0, passed=0, tpAccum=0;
 let spawnAcc={};
 let playing=true;
 let mainInflow=700, secInflow=350, freeSpd=50, tlapse=3, truckPct=15, politeness=55;
-let junctionMode='intersection', scenario='priority', closedLanes=new Set();
+let junctionMode='intersection', scenario='signals', closureMode='none';
 let TL_TIMES=[28,4,20,4], tlPhase=0, tlClock=0;
 
 const CAR_COLORS=[
@@ -456,18 +464,18 @@ function makeLanes(g){
   const lanes=[];
   if(junctionMode==='roundabout'){
     // Single-lane entry per approach prevents overlap at roundabout merge.
-    if(!closedLanes.has('n2')) lanes.push({id:'SB1',x:lx[1],y0:-30,y1:H+30,axis:'NS',dir:1,inflow:mainInflow,key:'n2'});
-    if(!closedLanes.has('s1')) lanes.push({id:'NB0',x:lx[2],y0:H+30,y1:-30,axis:'NS',dir:-1,inflow:mainInflow,key:'s1'});
-    if(!closedLanes.has('w'))  lanes.push({id:'EB',y:ly[1],x0:-30,x1:W+30,axis:'EW',dir:1,inflow:secInflow,key:'w'});
-    if(!closedLanes.has('e'))  lanes.push({id:'WB',y:ly[0],x0:W+30,x1:-30,axis:'EW',dir:-1,inflow:secInflow,key:'e'});
+    lanes.push({id:'SB1',x:lx[1],y0:-30,y1:H+30,axis:'NS',dir:1,inflow:mainInflow,key:'n2'});
+    lanes.push({id:'NB0',x:lx[2],y0:H+30,y1:-30,axis:'NS',dir:-1,inflow:mainInflow,key:'s1'});
+    lanes.push({id:'EB',y:ly[1],x0:-30,x1:W+30,axis:'EW',dir:1,inflow:secInflow,key:'w'});
+    lanes.push({id:'WB',y:ly[0],x0:W+30,x1:-30,axis:'EW',dir:-1,inflow:secInflow,key:'e'});
     return lanes;
   }
-  if(!closedLanes.has('n1')) lanes.push({id:'SB0',x:lx[0],y0:-30,y1:H+30,axis:'NS',dir:1,inflow:mainInflow*0.5,key:'n1'});
-  if(!closedLanes.has('n2')) lanes.push({id:'SB1',x:lx[1],y0:-30,y1:H+30,axis:'NS',dir:1,inflow:mainInflow*0.5,key:'n2'});
-  if(!closedLanes.has('s1')) lanes.push({id:'NB0',x:lx[2],y0:H+30,y1:-30,axis:'NS',dir:-1,inflow:mainInflow*0.5,key:'s1'});
-  if(!closedLanes.has('s2')) lanes.push({id:'NB1',x:lx[3],y0:H+30,y1:-30,axis:'NS',dir:-1,inflow:mainInflow*0.5,key:'s2'});
-  if(!closedLanes.has('w'))  lanes.push({id:'EB',y:ly[1],x0:-30,x1:W+30,axis:'EW',dir:1,inflow:secInflow,key:'w'});
-  if(!closedLanes.has('e'))  lanes.push({id:'WB',y:ly[0],x0:W+30,x1:-30,axis:'EW',dir:-1,inflow:secInflow,key:'e'});
+  lanes.push({id:'SB0',x:lx[0],y0:-30,y1:H+30,axis:'NS',dir:1,inflow:mainInflow*0.5,key:'n1'});
+  lanes.push({id:'SB1',x:lx[1],y0:-30,y1:H+30,axis:'NS',dir:1,inflow:mainInflow*0.5,key:'n2'});
+  lanes.push({id:'NB0',x:lx[2],y0:H+30,y1:-30,axis:'NS',dir:-1,inflow:mainInflow*0.5,key:'s1'});
+  lanes.push({id:'NB1',x:lx[3],y0:H+30,y1:-30,axis:'NS',dir:-1,inflow:mainInflow*0.5,key:'s2'});
+  lanes.push({id:'EB',y:ly[1],x0:-30,x1:W+30,axis:'EW',dir:1,inflow:secInflow,key:'w'});
+  lanes.push({id:'WB',y:ly[0],x0:W+30,x1:-30,axis:'EW',dir:-1,inflow:secInflow,key:'e'});
   return lanes;
 }
 
@@ -504,6 +512,11 @@ function angDist(a,b){
 function updateVehicles(dt,g){
   const {cx,cy,ewW,ixL,ixR,ixT,ixB,lw}=g;
   const lanes=makeLanes(g);
+  const laneById={};
+  for(const lane of lanes)laneById[lane.id]=lane;
+  const closedLaneId=closureMode==='north'?'SB0':closureMode==='south'?'NB0':null;
+  const mergeLaneId=closureMode==='north'?'SB1':closureMode==='south'?'NB1':null;
+  const closureY=closureMode==='north'?(ixT-lw*0.85):closureMode==='south'?(ixB+lw*0.85):0;
   for(const lane of lanes){
     if(!spawnAcc[lane.id])spawnAcc[lane.id]=0;
     spawnAcc[lane.id]+=dt;
@@ -548,6 +561,34 @@ function updateVehicles(dt,g){
     }
 
     let mustStop=false;
+    if(junctionMode==='intersection'&&closedLaneId&&mergeLaneId&&v.axis==='NS'&&v.laneId===closedLaneId){
+      const distToClosure=v.dir>0?(closureY-v.py):(v.py-closureY);
+      const inMergeZone=distToClosure<lw*6.2;
+      if(inMergeZone){
+        const stopBuffer=Math.max(v.len*0.72,lw*0.58);
+        // Merge gradually: strict gap early, more permissive near the work zone.
+        const nearBarrier=distToClosure<lw*2.2;
+        const aheadNeed=nearBarrier?v.len*1.35:v.len*2.4;
+        const behindNeed=nearBarrier?v.len*0.95:v.len*1.8;
+        let ahead=9999, behind=9999;
+        for(const u of vehicles){
+          if(u===v||!u.active||u.laneId!==mergeLaneId)continue;
+          const rel=v.dir*(u.py-v.py);
+          if(rel>=0&&rel<ahead)ahead=rel;
+          if(rel<0&&-rel<behind)behind=-rel;
+        }
+        const canMerge=ahead>aheadNeed&&behind>behindNeed&&laneById[mergeLaneId];
+        if(canMerge){
+          v.laneId=mergeLaneId;
+          v.fixX=laneById[mergeLaneId].x;
+          v.px=v.fixX;
+        } else if(distToClosure<stopBuffer){
+          mustStop=true;
+        } else {
+          v.spd=Math.min(v.spd,(freeSpd/3.6)*(nearBarrier?0.42:0.35));
+        }
+      }
+    }
     if(junctionMode==='roundabout'){
       const ap=lw*3.2,sl=lw*1.45;
       const nearEntry=
@@ -735,6 +776,49 @@ function drawIdOverlays(g){
     ctx.restore();
   }
 }
+function drawClosureMarkers(g){
+  const closedLaneKey=getClosedLaneKey();
+  if(!closedLaneKey)return;
+  const {ixL,ixR,ixT,ixB,lw,lx,ly}=g;
+  const markers={
+    n1:{x:lx[0],y:ixT-lw*1.0,rot:0},
+    n2:{x:lx[1],y:ixT-lw*1.0,rot:0},
+    s1:{x:lx[2],y:ixB+lw*1.0,rot:0},
+    s2:{x:lx[3],y:ixB+lw*1.0,rot:0},
+    w:{x:ixL-lw*1.2,y:ly[1],rot:Math.PI/2},
+    e:{x:ixR+lw*1.2,y:ly[0],rot:Math.PI/2}
+  };
+  const m=markers[closedLaneKey];
+  if(!m)return;
+  drawConstructionMarker(m.x,m.y,m.rot,lw);
+}
+function drawConstructionMarker(x,y,rot,lw){
+  // Keep barricade lane-sized so single-lane closures don't look like full approach closures.
+  const bw=lw*0.9,bh=lw*0.58;
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(rot);
+  ctx.fillStyle='rgba(25,22,18,0.85)';
+  ctx.fillRect(-bw*0.54,-bh*0.68,bw*1.08,bh*1.36);
+  ctx.fillStyle='#d67c28';
+  ctx.fillRect(-bw*0.5,-bh*0.5,bw,bh);
+  ctx.strokeStyle='rgba(45,25,12,0.9)';
+  ctx.lineWidth=1;
+  ctx.strokeRect(-bw*0.5,-bh*0.5,bw,bh);
+  ctx.strokeStyle='rgba(255,240,200,0.9)';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(-bw*0.42,bh*0.36);ctx.lineTo(-bw*0.18,-bh*0.36);
+  ctx.moveTo(-bw*0.08,bh*0.36);ctx.lineTo(bw*0.16,-bh*0.36);
+  ctx.moveTo(bw*0.26,bh*0.36);ctx.lineTo(bw*0.5,-bh*0.36);
+  ctx.stroke();
+  ctx.fillStyle='rgba(255,245,220,0.96)';
+  ctx.font=`${Math.max(8,lw*0.36)}px ${getComputedStyle(document.documentElement).getPropertyValue('--mono')}`;
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText('WORK',0,0);
+  ctx.restore();
+}
 
 let last=null;
 function loop(ts){
@@ -749,6 +833,7 @@ function loop(ts){
   const g=geo();
   drawTerrain();drawBuildings();drawRoads();drawMarkings();drawFurniture();drawPlaceLabels();
   drawSignalHeads(g);
+  drawClosureMarkers(g);
   drawVehicles(g);
   drawIdOverlays(g);
   updateMetricsUI();
@@ -762,6 +847,27 @@ function toggleVids(){showVids=!showVids;document.getElementById('ob-vid').class
 function resetSim(){vehicles=[];vid=0;simT=0;passed=0;tpAccum=0;tlPhase=0;tlClock=0;spawnAcc={};document.getElementById('timer').textContent='T = 0 s';updateMetricsUI();}
 function sv(id,val){document.getElementById(id).textContent=val;}
 requestAnimationFrame(loop);
+function getClosedApproaches(){
+  if(closureMode==='north')return new Set(['north']);
+  if(closureMode==='south')return new Set(['south']);
+  return new Set();
+}
+function getClosedLaneKey(){
+  if(closureMode==='north')return 'n1';
+  if(closureMode==='south')return 's1';
+  return '';
+}
+function syncLaneClosureUI(){
+  document.querySelectorAll('#closure-mode-pills .pill').forEach(btn=>{
+    btn.classList.toggle('on',btn.dataset.cmode===closureMode);
+  });
+}
+function setClosureMode(btn,mode){
+  if(closureMode===mode)return;
+  closureMode=mode;
+  syncLaneClosureUI();
+  resetSim();
+}
 function setScenario(btn,sc){
   if(junctionMode==='roundabout'&&sc==='signals')return;
   scenario=sc;
@@ -785,6 +891,7 @@ function updateControlUI(){
     signalBtn.style.display='';
     sliders.style.display='';
   }
+  syncLaneClosureUI();
 }
 
 function setJunction(btn,mode){
@@ -798,6 +905,11 @@ function setJunction(btn,mode){
       document.querySelectorAll('#scenario-pills .pill').forEach(b=>b.classList.remove('on'));
       document.getElementById('sc-priority').classList.add('on');
     }
+  } else if(mode==='intersection'&&scenario==='priority'){
+    scenario='signals';
+    document.querySelectorAll('#scenario-pills .pill').forEach(b=>b.classList.remove('on'));
+    document.getElementById('sc-signals').classList.add('on');
+    tlPhase=0;tlClock=0;
   }
   if(modeChanged)resetSim();
   updateControlUI();
