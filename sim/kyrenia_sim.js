@@ -387,6 +387,7 @@ function updateVehicles(dt,g){
   const impoliteness=1-(politeness/100);
   for(const v of vehicles){
     if(!v.active)continue;
+    let closureStopCenterY=null;
 
     if(junctionMode==='roundabout'&&v.rb){
       const rbR=lw*2.75;
@@ -425,7 +426,8 @@ function updateVehicles(dt,g){
       const distToClosure=v.dir>0?(closureY-v.py):(v.py-closureY);
       const inMergeZone=distToClosure<lw*6.2;
       if(inMergeZone){
-        const stopBuffer=Math.max(v.len*0.72,lw*0.58);
+        const stopBuffer=Math.max(v.len*0.95,lw*0.75);
+        const stopCenterY=closureY-(v.dir*stopBuffer);
         // Merge gradually: strict gap early, more permissive near the work zone.
         const nearBarrier=distToClosure<lw*2.2;
         const aheadNeed=nearBarrier?v.len*1.35:v.len*2.4;
@@ -444,6 +446,7 @@ function updateVehicles(dt,g){
           v.px=v.fixX;
         } else if(distToClosure<stopBuffer){
           mustStop=true;
+          closureStopCenterY=stopCenterY;
         } else {
           v.spd=Math.min(v.spd,(freeSpd/3.6)*(nearBarrier?0.42:0.35));
         }
@@ -538,8 +541,42 @@ function updateVehicles(dt,g){
     }
     if(v.axis==='NS'){v.py+=v.dir*v.spd*dt;if(v.fixX!==null)v.px=v.fixX;}
     else{v.px+=v.dir*v.spd*dt;if(v.fixY!==null)v.py=v.fixY;}
+    if(closureStopCenterY!==null&&v.axis==='NS'&&v.laneId===closedLaneId){
+      if(v.dir*(v.py-closureStopCenterY)>0){
+        v.py=closureStopCenterY;
+        v.spd=0;
+      }
+    }
     if(v.spd<0.3)v.stopTime+=dt;else v.stopTime=0;
     if(v.px<-80||v.px>W+80||v.py<-80||v.py>H+80){v.active=false;passed++;}
+  }
+  // Safety clamp to avoid visual stacking when queues release on phase changes.
+  const laneGroups={};
+  for(const v of vehicles){
+    if(!v.active)continue;
+    if(!laneGroups[v.laneId])laneGroups[v.laneId]=[];
+    laneGroups[v.laneId].push(v);
+  }
+  const minQueueGap=lw*0.32;
+  for(const laneId in laneGroups){
+    const arr=laneGroups[laneId];
+    arr.sort((a,b)=>{
+      const pa=a.axis==='NS'?(a.dir*a.py):(a.dir*a.px);
+      const pb=b.axis==='NS'?(b.dir*b.py):(b.dir*b.px);
+      return pb-pa;
+    });
+    for(let i=1;i<arr.length;i++){
+      const lead=arr[i-1], foll=arr[i];
+      const pLead=lead.axis==='NS'?(lead.dir*lead.py):(lead.dir*lead.px);
+      const pFoll=foll.axis==='NS'?(foll.dir*foll.py):(foll.dir*foll.px);
+      const minCenterGap=(lead.len+foll.len)*0.5+minQueueGap;
+      if(pLead-pFoll<minCenterGap){
+        const fixedP=pLead-minCenterGap;
+        if(foll.axis==='NS')foll.py=fixedP*foll.dir;
+        else foll.px=fixedP*foll.dir;
+        foll.spd=Math.min(foll.spd,lead.spd);
+      }
+    }
   }
   if(vehicles.length>400)vehicles=vehicles.filter(v=>v.active);
 }
