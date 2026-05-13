@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Kyrenia — Traffic Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kyrenia_sim.css">
+
+</head>
+
+<body>
+
+<div id="app">
+
+  <div id="sim">
+    <canvas id="c"></canvas>
+
+    <div id="ov">
+      <div class="ob" id="ob-play" onclick="togglePlay()">⏸ PAUSE</div>
+      <div class="ob" id="ob-ids" onclick="toggleIds()">ROAD IDs</div>
+      <div class="ob" id="ob-vid" onclick="toggleVids()">VEH IDs</div>
+      <div class="ob" id="ob-rst" onclick="resetSim()">↺ RESET</div>
+    </div>
+
+    <div id="corner-label">Bellapais Ave × Dr. Fazıl Küçük Cad · Kyrenia (Girne) · TRNC</div>
+
+  </div>
+
+  <div id="div"></div>
+
+  <div id="ctrl">
+
+    <div id="ctrl-scroll">
+      <div class="ctrl-head">Kyrenia Traffic</div>
+
+      <div class="sec">
+        <div class="sec-lbl">Junction Type</div>
+
+        <div class="pills" id="junction-pills">
+          <button class="pill on" onclick="setJunction(this,'intersection')">Intersection</button>
+          <button class="pill" onclick="setJunction(this,'roundabout')">Roundabout</button>
+        </div>
+
+        <div class="sec-lbl" style="margin-top:8px">Control Mode</div>
+
+        <div class="pills" id="scenario-pills">
+          <button class="pill" id="sc-priority" onclick="setScenario(this,'priority')">Priority</button>
+          <button class="pill on" id="sc-signals" onclick="setScenario(this,'signals')">Signals</button>
+          <button class="pill" id="sc-allstop" onclick="setScenario(this,'allstop')">All-stop</button>
+        </div>
+
+        <div class="tl-sliders">
+
+          <div class="tl-row">
+            <div class="tl-dot" style="background:#5caa5c"></div>
+            <span>North green</span>
+            <input type="range" min="4" max="45" value="14" step="1" oninput="TL_TIMES[0]=+this.value;sv('sv-gN',this.value+'s')">
+            <div class="tl-sv" id="sv-gN">14s</div>
+          </div>
+
+          <div class="tl-row">
+            <div class="tl-dot" style="background:#5caa5c"></div>
+            <span>South green</span>
+            <input type="range" min="4" max="45" value="14" step="1" oninput="TL_TIMES[1]=+this.value;sv('sv-gS',this.value+'s')">
+            <div class="tl-sv" id="sv-gS">14s</div>
+          </div>
+
+          <div class="tl-row">
+            <div class="tl-dot" style="background:#5caa5c"></div>
+            <span>East green</span>
+            <input type="range" min="4" max="45" value="12" step="1" oninput="TL_TIMES[2]=+this.value;sv('sv-gE',this.value+'s')">
+            <div class="tl-sv" id="sv-gE">12s</div>
+          </div>
+          
+          <div class="tl-row">
+            <div class="tl-dot" style="background:#5caa5c"></div>
+            <span>West green</span>
+            <input type="range" min="4" max="45" value="12" step="1" oninput="TL_TIMES[3]=+this.value;sv('sv-gW',this.value+'s')">
+            <div class="tl-sv" id="sv-gW">12s</div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="sec">
+        <div class="sec-lbl">Traffic Flow</div>
+        <div class="sr">
+          <span>Main inflow</span>
+          <input type="range" min="0" max="2400" value="700" step="50" oninput="mainInflow=+this.value;sv('sv-mi',this.value+' /h')">
+          <div class="sv" id="sv-mi">700 /h</div>
+        </div>
+        
+        <div class="sr">
+          <span>Secondary inflow</span>
+          <input type="range" min="0" max="1200" value="350" step="50" oninput="secInflow=+this.value;sv('sv-si',this.value+' /h')">
+          <div class="sv" id="sv-si">350 /h</div>
+        </div>
+
+        <div class="sr">
+          <span>Timelapse</span>
+          <input type="range" min="1" max="10" value="3" step="0.5" oninput="tlapse=+this.value;sv('sv-tl',this.value+'×')">
+          <div class="sv" id="sv-tl">3×</div>
+        </div>
+
+        <div class="sr">
+          <span>Truck ratio</span>
+          <input type="range" min="0" max="60" value="15" step="5" oninput="truckPct=+this.value;sv('sv-tr',this.value+'%')">
+          <div class="sv" id="sv-tr">15%</div>
+        </div>
+
+      </div>
+
+      <div class="sec">
+        <div class="sec-lbl">Driver Behavior</div>
+        
+        <div class="sr">
+          <span>Max speed</span>
+          <input type="range" min="20" max="90" value="50" step="5" oninput="freeSpd=+this.value;sv('sv-sp',this.value+' km/h')">
+          <div class="sv" id="sv-sp">50 km/h</div>
+        </div>
+
+        <div class="sr">
+          <span>Politeness</span>
+          <input type="range" min="0" max="100" value="55" step="5" oninput="politeness=+this.value;sv('sv-po',this.value+'%')">
+          <div class="sv" id="sv-po">55%</div>
+        </div>
+
+      </div>
+
+      <div class="sec">
+        <div class="sec-lbl">Lane Closures</div>
+
+        <div class="closure-group">
+          <div class="closure-lbl">North approach (SB)</div>
+          <div class="pills" id="closure-n">
+            <button class="pill on" data-lane="" onclick="setClosureMode(this,'n',null)">None</button>
+            <button class="pill" data-lane="SB0" onclick="setClosureMode(this,'n','SB0')">SB0</button>
+            <button class="pill" data-lane="SB1" onclick="setClosureMode(this,'n','SB1')">SB1</button>
+          </div>
+        </div>
+
+        <div class="closure-group">
+          <div class="closure-lbl">South approach (NB)</div>
+          <div class="pills" id="closure-s">
+            <button class="pill on" data-lane="" onclick="setClosureMode(this,'s',null)">None</button>
+            <button class="pill" data-lane="NB0" onclick="setClosureMode(this,'s','NB0')">NB0</button>
+            <button class="pill" data-lane="NB1" onclick="setClosureMode(this,'s','NB1')">NB1</button>
+            <button class="pill" data-lane="NB2" onclick="setClosureMode(this,'s','NB2')">NB2</button>
+          </div>
+        </div>
+
+        <div class="closure-group">
+          <div class="closure-lbl">East approach (WB)</div>
+          <div class="pills" id="closure-e">
+            <button class="pill on" data-lane="" onclick="setClosureMode(this,'e',null)">None</button>
+            <button class="pill" data-lane="WB0" onclick="setClosureMode(this,'e','WB0')">WB0</button>
+            <button class="pill" data-lane="WB1" onclick="setClosureMode(this,'e','WB1')">WB1</button>
+          </div>
+        </div>
+
+        <div class="closure-group">
+          <div class="closure-lbl">West approach (EB)</div>
+          <div class="pills" id="closure-w">
+            <button class="pill on" data-lane="" onclick="setClosureMode(this,'w',null)">None</button>
+            <button class="pill" data-lane="EB0" onclick="setClosureMode(this,'w','EB0')">EB0</button>
+            <button class="pill" data-lane="EB1" onclick="setClosureMode(this,'w','EB1')">EB1</button>
+            <button class="pill" data-lane="EB2" onclick="setClosureMode(this,'w','EB2')">EB2</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="sec">
+        <div class="sec-lbl">Live Metrics</div>
+
+        <div class="stats-grid">
+          <div class="stats-k">Active vehicles</div>
+          <div class="stats-v" id="m-active">0</div>
+          <div class="stats-k">Avg speed</div>
+          <div class="stats-v" id="m-spd">0.0 km/h</div>
+          <div class="stats-k">Throughput</div>
+          <div class="stats-v" id="m-thru">0 /h</div>
+          <div class="stats-k">Avg wait</div>
+          <div class="stats-v" id="m-wait">0.0 s</div>
+          <div class="stats-k">Stopped vehicles</div>
+          <div class="stats-v" id="m-stop">0</div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div id="ctrl-foot">
+      <div id="timer">T = 0 s</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="kyrenia_sim.js"></script>
+
+</body>
+
+</html>
