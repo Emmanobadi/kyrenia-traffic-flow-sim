@@ -155,8 +155,8 @@ function geo(){
   const unit = Math.min(W,H)*0.032;
   const nsW = unit*4.4, ewW = unit*2.2, lw = nsW/4;
   const ixL=cx-nsW/2, ixR=cx+nsW/2, ixT=cy-ewW/2, ixB=cy+ewW/2;
-  const lx=[cx-lw*1.5, cx-lw*0.5, cx+lw*0.5, cx+lw*1.5];
-  const ly=[cy-ewW*0.25, cy+ewW*0.25];
+  const lx=[cx+lw*1.5, cx+lw*0.5, cx-lw*0.5, cx-lw*1.5];
+  const ly=[cy+ewW*0.25, cy-ewW*0.25];
   return {cx,cy,unit,nsW,ewW,lw,ixL,ixR,ixT,ixB,lx,ly};
 }
 
