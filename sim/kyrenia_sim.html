@@ -113,7 +113,7 @@ canvas{display:block;width:100%;height:100%}
         <div class="sr"><span>Max speed</span><input type="range" min="20" max="90" value="50" step="5" oninput="freeSpd=+this.value;sv('sv-sp',this.value+' km/h')"><div class="sv" id="sv-sp">50 km/h</div></div>
         <div class="sr"><span>Politeness</span><input type="range" min="0" max="100" value="55" step="5" oninput="politeness=+this.value;sv('sv-po',this.value+'%')"><div class="sv" id="sv-po">55%</div></div>
       </div>
-      <div class="sec">
+      <div class="sec" id="closure-sec">
         <div class="sec-lbl">Lane Closures</div>
         <div class="pills" id="closure-mode-pills">
           <button class="pill on" data-cmode="none" onclick="setClosureMode(this,'none')">None</button>
@@ -863,6 +863,7 @@ function syncLaneClosureUI(){
   });
 }
 function setClosureMode(btn,mode){
+  if(junctionMode==='roundabout')return;
   if(closureMode===mode)return;
   closureMode=mode;
   syncLaneClosureUI();
@@ -879,9 +880,12 @@ function setScenario(btn,sc){
 function updateControlUI(){
   const signalBtn=document.getElementById('sc-signals');
   const sliders=document.querySelector('.tl-sliders');
+  const closureSec=document.getElementById('closure-sec');
   if(junctionMode==='roundabout'){
     signalBtn.style.display='none';
     sliders.style.display='none';
+    closureSec.style.display='none';
+    if(closureMode!=='none')closureMode='none';
     if(scenario==='signals'){
       scenario='priority';
       document.querySelectorAll('#scenario-pills .pill').forEach(b=>b.classList.remove('on'));
@@ -890,6 +894,7 @@ function updateControlUI(){
   } else {
     signalBtn.style.display='';
     sliders.style.display='';
+    closureSec.style.display='';
   }
   syncLaneClosureUI();
 }
