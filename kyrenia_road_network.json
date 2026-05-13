@@ -1,0 +1,652 @@
+{
+  "center": {
+    "lat": 35.336,
+    "lon": 33.318
+  },
+  "bounds": {
+    "north": 35.3396036036036,
+    "south": 35.3323963963964,
+    "east": 33.3216036036036,
+    "west": 33.3143963963964
+  },
+  "nodes": {
+    "n_l_start": {
+      "lat": 35.3396036036036,
+      "lon": 33.318108108108106
+    },
+    "n_l_stop": {
+      "lat": 35.33636036036036,
+      "lon": 33.318108108108106
+    },
+    "n_r_start": {
+      "lat": 35.3396036036036,
+      "lon": 33.31789189189189
+    },
+    "n_r_stop": {
+      "lat": 35.33636036036036,
+      "lon": 33.31789189189189
+    },
+    "s_l_start": {
+      "lat": 35.3323963963964,
+      "lon": 33.318108108108106
+    },
+    "s_l_stop": {
+      "lat": 35.33563963963964,
+      "lon": 33.318108108108106
+    },
+    "s_r_start": {
+      "lat": 35.3323963963964,
+      "lon": 33.31789189189189
+    },
+    "s_r_stop": {
+      "lat": 35.33563963963964,
+      "lon": 33.31789189189189
+    },
+    "e_start": {
+      "lat": 35.33610810810811,
+      "lon": 33.3216036036036
+    },
+    "e_stop": {
+      "lat": 35.33610810810811,
+      "lon": 33.31836036036036
+    },
+    "w_start": {
+      "lat": 35.33589189189189,
+      "lon": 33.3143963963964
+    },
+    "w_stop": {
+      "lat": 35.33589189189189,
+      "lon": 33.31763963963964
+    },
+    "int_n": {
+      "lat": 35.33618018018018,
+      "lon": 33.318
+    },
+    "int_s": {
+      "lat": 35.33581981981982,
+      "lon": 33.318
+    },
+    "int_e": {
+      "lat": 35.336,
+      "lon": 33.31818018018018
+    },
+    "int_w": {
+      "lat": 35.336,
+      "lon": 33.31781981981982
+    }
+  },
+  "roads": [
+    {
+      "id": "r_0",
+      "from": "n_l_start",
+      "to": "n_l_stop",
+      "points": [
+        {
+          "lat": 35.3396036036036,
+          "lon": 33.318108108108106
+        },
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.318108108108106
+        }
+      ],
+      "highway": "primary",
+      "speed_kmh": 60,
+      "lanes": 1,
+      "length": 100,
+      "name": "Bellapais Ave North L",
+      "is_approach": true
+    },
+    {
+      "id": "r_1",
+      "from": "n_r_start",
+      "to": "n_r_stop",
+      "points": [
+        {
+          "lat": 35.3396036036036,
+          "lon": 33.31789189189189
+        },
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.31789189189189
+        }
+      ],
+      "highway": "primary",
+      "speed_kmh": 60,
+      "lanes": 1,
+      "length": 100,
+      "name": "Bellapais Ave North R",
+      "is_approach": true
+    },
+    {
+      "id": "r_2",
+      "from": "s_l_start",
+      "to": "s_l_stop",
+      "points": [
+        {
+          "lat": 35.3323963963964,
+          "lon": 33.318108108108106
+        },
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.318108108108106
+        }
+      ],
+      "highway": "primary",
+      "speed_kmh": 60,
+      "lanes": 1,
+      "length": 100,
+      "name": "Bellapais Ave South L",
+      "is_approach": true
+    },
+    {
+      "id": "r_3",
+      "from": "s_r_start",
+      "to": "s_r_stop",
+      "points": [
+        {
+          "lat": 35.3323963963964,
+          "lon": 33.31789189189189
+        },
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.31789189189189
+        }
+      ],
+      "highway": "primary",
+      "speed_kmh": 60,
+      "lanes": 1,
+      "length": 100,
+      "name": "Bellapais Ave South R",
+      "is_approach": true
+    },
+    {
+      "id": "r_4",
+      "from": "e_start",
+      "to": "e_stop",
+      "points": [
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.3216036036036
+        },
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.31836036036036
+        }
+      ],
+      "highway": "secondary",
+      "speed_kmh": 50,
+      "lanes": 1,
+      "length": 100,
+      "name": "Harbor Road East",
+      "is_approach": true
+    },
+    {
+      "id": "r_5",
+      "from": "w_start",
+      "to": "w_stop",
+      "points": [
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.3143963963964
+        },
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.31763963963964
+        }
+      ],
+      "highway": "secondary",
+      "speed_kmh": 50,
+      "lanes": 1,
+      "length": 100,
+      "name": "Harbor Road West",
+      "is_approach": true
+    },
+    {
+      "id": "r_6",
+      "from": "n_l_stop",
+      "to": "s_l_stop",
+      "points": [
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.318108108108106
+        },
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.318108108108106
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 40,
+      "lanes": 1,
+      "length": 100,
+      "name": "N-S Left Lane",
+      "is_approach": true
+    },
+    {
+      "id": "r_7",
+      "from": "n_r_stop",
+      "to": "s_r_stop",
+      "points": [
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.31789189189189
+        },
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.31789189189189
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 40,
+      "lanes": 1,
+      "length": 100,
+      "name": "N-S Right Lane",
+      "is_approach": true
+    },
+    {
+      "id": "r_8",
+      "from": "s_l_stop",
+      "to": "n_l_stop",
+      "points": [
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.318108108108106
+        },
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.318108108108106
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 40,
+      "lanes": 1,
+      "length": 100,
+      "name": "S-N Left Lane",
+      "is_approach": true
+    },
+    {
+      "id": "r_9",
+      "from": "s_r_stop",
+      "to": "n_r_stop",
+      "points": [
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.31789189189189
+        },
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.31789189189189
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 40,
+      "lanes": 1,
+      "length": 100,
+      "name": "S-N Right Lane",
+      "is_approach": true
+    },
+    {
+      "id": "r_10",
+      "from": "e_stop",
+      "to": "w_stop",
+      "points": [
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.31836036036036
+        },
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.31763963963964
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 40,
+      "lanes": 1,
+      "length": 100,
+      "name": "E-W Road",
+      "is_approach": true
+    },
+    {
+      "id": "r_11",
+      "from": "w_stop",
+      "to": "e_stop",
+      "points": [
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.31763963963964
+        },
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.31836036036036
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 40,
+      "lanes": 1,
+      "length": 100,
+      "name": "W-E Road",
+      "is_approach": true
+    },
+    {
+      "id": "r_12",
+      "from": "n_r_stop",
+      "to": "e_stop",
+      "points": [
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.31789189189189
+        },
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.31836036036036
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 30,
+      "lanes": 1,
+      "length": 100,
+      "name": "N→E Turn",
+      "is_approach": true
+    },
+    {
+      "id": "r_13",
+      "from": "e_stop",
+      "to": "s_r_stop",
+      "points": [
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.31836036036036
+        },
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.31789189189189
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 30,
+      "lanes": 1,
+      "length": 100,
+      "name": "E→S Turn",
+      "is_approach": true
+    },
+    {
+      "id": "r_14",
+      "from": "s_r_stop",
+      "to": "w_stop",
+      "points": [
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.31789189189189
+        },
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.31763963963964
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 30,
+      "lanes": 1,
+      "length": 100,
+      "name": "S→W Turn",
+      "is_approach": true
+    },
+    {
+      "id": "r_15",
+      "from": "w_stop",
+      "to": "n_r_stop",
+      "points": [
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.31763963963964
+        },
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.31789189189189
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 30,
+      "lanes": 1,
+      "length": 100,
+      "name": "W→N Turn",
+      "is_approach": true
+    },
+    {
+      "id": "r_16",
+      "from": "n_l_stop",
+      "to": "w_stop",
+      "points": [
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.318108108108106
+        },
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.31763963963964
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 30,
+      "lanes": 1,
+      "length": 100,
+      "name": "N→W Turn",
+      "is_approach": true
+    },
+    {
+      "id": "r_17",
+      "from": "w_stop",
+      "to": "s_l_stop",
+      "points": [
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.31763963963964
+        },
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.318108108108106
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 30,
+      "lanes": 1,
+      "length": 100,
+      "name": "W→S Turn",
+      "is_approach": true
+    },
+    {
+      "id": "r_18",
+      "from": "s_l_stop",
+      "to": "e_stop",
+      "points": [
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.318108108108106
+        },
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.31836036036036
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 30,
+      "lanes": 1,
+      "length": 100,
+      "name": "S→E Turn",
+      "is_approach": true
+    },
+    {
+      "id": "r_19",
+      "from": "e_stop",
+      "to": "n_l_stop",
+      "points": [
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.31836036036036
+        },
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.318108108108106
+        }
+      ],
+      "highway": "tertiary",
+      "speed_kmh": 30,
+      "lanes": 1,
+      "length": 100,
+      "name": "E→N Turn",
+      "is_approach": true
+    },
+    {
+      "id": "r_20",
+      "from": "n_l_stop",
+      "to": "n_l_start",
+      "points": [
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.318108108108106
+        },
+        {
+          "lat": 35.3396036036036,
+          "lon": 33.318108108108106
+        }
+      ],
+      "highway": "primary",
+      "speed_kmh": 60,
+      "lanes": 1,
+      "length": 100,
+      "name": "Bellapais Ave North Exit L",
+      "is_approach": false
+    },
+    {
+      "id": "r_21",
+      "from": "n_r_stop",
+      "to": "n_r_start",
+      "points": [
+        {
+          "lat": 35.33636036036036,
+          "lon": 33.31789189189189
+        },
+        {
+          "lat": 35.3396036036036,
+          "lon": 33.31789189189189
+        }
+      ],
+      "highway": "primary",
+      "speed_kmh": 60,
+      "lanes": 1,
+      "length": 100,
+      "name": "Bellapais Ave North Exit R",
+      "is_approach": false
+    },
+    {
+      "id": "r_22",
+      "from": "s_l_stop",
+      "to": "s_l_start",
+      "points": [
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.318108108108106
+        },
+        {
+          "lat": 35.3323963963964,
+          "lon": 33.318108108108106
+        }
+      ],
+      "highway": "primary",
+      "speed_kmh": 60,
+      "lanes": 1,
+      "length": 100,
+      "name": "Bellapais Ave South Exit L",
+      "is_approach": false
+    },
+    {
+      "id": "r_23",
+      "from": "s_r_stop",
+      "to": "s_r_start",
+      "points": [
+        {
+          "lat": 35.33563963963964,
+          "lon": 33.31789189189189
+        },
+        {
+          "lat": 35.3323963963964,
+          "lon": 33.31789189189189
+        }
+      ],
+      "highway": "primary",
+      "speed_kmh": 60,
+      "lanes": 1,
+      "length": 100,
+      "name": "Bellapais Ave South Exit R",
+      "is_approach": false
+    },
+    {
+      "id": "r_24",
+      "from": "e_stop",
+      "to": "e_start",
+      "points": [
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.31836036036036
+        },
+        {
+          "lat": 35.33610810810811,
+          "lon": 33.3216036036036
+        }
+      ],
+      "highway": "secondary",
+      "speed_kmh": 50,
+      "lanes": 1,
+      "length": 100,
+      "name": "Harbor Road East Exit",
+      "is_approach": false
+    },
+    {
+      "id": "r_25",
+      "from": "w_stop",
+      "to": "w_start",
+      "points": [
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.31763963963964
+        },
+        {
+          "lat": 35.33589189189189,
+          "lon": 33.3143963963964
+        }
+      ],
+      "highway": "secondary",
+      "speed_kmh": 50,
+      "lanes": 1,
+      "length": 100,
+      "name": "Harbor Road West Exit",
+      "is_approach": false
+    }
+  ],
+  "area": "Kyrenia Harbor District",
+  "location": "Bellapais Avenue & Harbor Road",
+  "description": "Small realistic intersection - fully structured for vehicle simulation",
+  "ready_for_vehicles": true,
+  "approach_roads": [
+    "r_0",
+    "r_1",
+    "r_2",
+    "r_3",
+    "r_4",
+    "r_5",
+    "r_6",
+    "r_7",
+    "r_8",
+    "r_9",
+    "r_10",
+    "r_11",
+    "r_12",
+    "r_13",
+    "r_14",
+    "r_15",
+    "r_16",
+    "r_17",
+    "r_18",
+    "r_19"
+  ]
+}

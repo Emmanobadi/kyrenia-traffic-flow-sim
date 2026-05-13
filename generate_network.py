@@ -30,24 +30,24 @@ def create_kyrenia_harbor_intersection():
     nodes = {}
     
     # ===== NORTH APPROACH (Bellapais Ave incoming) =====
-    nodes['n_l_start'] = {'lat': center_lat + road_length, 'lon': center_lon - lane_offset}
-    nodes['n_l_stop'] = {'lat': center_lat + stop_dist, 'lon': center_lon - lane_offset}
-    nodes['n_r_start'] = {'lat': center_lat + road_length, 'lon': center_lon + lane_offset}
-    nodes['n_r_stop'] = {'lat': center_lat + stop_dist, 'lon': center_lon + lane_offset}
+    nodes['n_l_start'] = {'lat': center_lat + road_length, 'lon': center_lon + lane_offset}
+    nodes['n_l_stop'] = {'lat': center_lat + stop_dist, 'lon': center_lon + lane_offset}
+    nodes['n_r_start'] = {'lat': center_lat + road_length, 'lon': center_lon - lane_offset}
+    nodes['n_r_stop'] = {'lat': center_lat + stop_dist, 'lon': center_lon - lane_offset}
     
     # ===== SOUTH APPROACH (Bellapais Ave incoming) =====
-    nodes['s_l_start'] = {'lat': center_lat - road_length, 'lon': center_lon - lane_offset}
-    nodes['s_l_stop'] = {'lat': center_lat - stop_dist, 'lon': center_lon - lane_offset}
-    nodes['s_r_start'] = {'lat': center_lat - road_length, 'lon': center_lon + lane_offset}
-    nodes['s_r_stop'] = {'lat': center_lat - stop_dist, 'lon': center_lon + lane_offset}
+    nodes['s_l_start'] = {'lat': center_lat - road_length, 'lon': center_lon + lane_offset}
+    nodes['s_l_stop'] = {'lat': center_lat - stop_dist, 'lon': center_lon + lane_offset}
+    nodes['s_r_start'] = {'lat': center_lat - road_length, 'lon': center_lon - lane_offset}
+    nodes['s_r_stop'] = {'lat': center_lat - stop_dist, 'lon': center_lon - lane_offset}
     
     # ===== EAST APPROACH (Harbor Road incoming) =====
-    nodes['e_start'] = {'lat': center_lat, 'lon': center_lon + road_length}
-    nodes['e_stop'] = {'lat': center_lat, 'lon': center_lon + stop_dist}
+    nodes['e_start'] = {'lat': center_lat + lane_offset, 'lon': center_lon + road_length}
+    nodes['e_stop'] = {'lat': center_lat + lane_offset, 'lon': center_lon + stop_dist}
     
     # ===== WEST APPROACH (Harbor Road incoming) =====
-    nodes['w_start'] = {'lat': center_lat, 'lon': center_lon - road_length}
-    nodes['w_stop'] = {'lat': center_lat, 'lon': center_lon - stop_dist}
+    nodes['w_start'] = {'lat': center_lat - lane_offset, 'lon': center_lon - road_length}
+    nodes['w_stop'] = {'lat': center_lat - lane_offset, 'lon': center_lon - stop_dist}
     
     # ===== INTERSECTION CROSSING POINTS =====
     nodes['int_n'] = {'lat': center_lat + stop_dist/2, 'lon': center_lon}
